@@ -132,3 +132,13 @@ web_modules/
 .yarn/unplugged
 .yarn/build-state.yml
 .pnp.*
+
+node_modules/
+package-lock.json
+.DS_Store
+private_config.json
+src/old
+old_correct.ts
+new_correct.ts
+new_incorrect.ts
+config.json
