@@ -1,9 +1,13 @@
 import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 
-import { LoggingHomebridgePlatform } from './platform';
+import { LoggingHomebridgePlatform } from '../platform';
+
+import { md5 } from "../md5";
 
 export class LoggingPlatformAccessoryLightBulb {
   private service: Service;
+
+  private model: string = "LightBulb";
 
   private states = {
     On: false,
@@ -16,9 +20,10 @@ export class LoggingPlatformAccessoryLightBulb {
   ) {
 
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Default-Manufacturer')
-      .setCharacteristic(this.platform.Characteristic.Model,        'Default-Model')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, 'Default-Serial');
+      .setCharacteristic(this.platform.Characteristic.Manufacturer,     this.platform.manufacturer)
+      .setCharacteristic(this.platform.Characteristic.Model,            this.model + ' @ ' + this.platform.model)
+      .setCharacteristic(this.platform.Characteristic.SerialNumber,     md5(accessory.context.device.exampleDisplayName + this.model))
+      .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.platform.firmwareRevision);
 
     this.service = this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
 
@@ -38,14 +43,14 @@ export class LoggingPlatformAccessoryLightBulb {
     // implement your own code to turn your device on/off
     this.states.On = value as boolean;
 
-    this.platform.log.debug('Set Characteristic On ->', value);
+    this.platform.log.info('[%s] Set Characteristic On ->', this.accessory.context.device.exampleDisplayName, value);
   }
 
   async getOn(): Promise<CharacteristicValue> {
     // implement your own code to check if the device is on
     const isOn = this.states.On;
 
-    this.platform.log.debug('Get Characteristic On ->', isOn);
+    this.platform.log.info('[%s] Get Characteristic On ->', this.accessory.context.device.exampleDisplayName, isOn);
 
     return isOn;
   }
@@ -54,14 +59,14 @@ export class LoggingPlatformAccessoryLightBulb {
     // implement your own code to set the brightness
     this.states.Brightness = value as number;
 
-    this.platform.log.debug('Set Characteristic Brightness -> ', value);
+    this.platform.log.info('[%s] Set Characteristic Brightness -> ', this.accessory.context.device.exampleDisplayName, value);
   }
 
   async getBrightness(): Promise<CharacteristicValue> {
     // implement your own code to check if the device is on
     const isBrightness = this.states.Brightness;
 
-    this.platform.log.debug('Get Characteristic Brightness ->', isBrightness);
+    this.platform.log.info('[%s] Get Characteristic Brightness ->', this.accessory.context.device.exampleDisplayName, isBrightness);
 
     return isBrightness;
   }

@@ -1,12 +1,12 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 
-import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { LoggingPlatformAccessoryLightBulb } from './platformAccessoryLightBulb';
-import { LoggingPlatformAccessory } from './platformAccessory';
+import { PLATFORM_NAME, PLUGIN_NAME }        from './settings';
+import { LoggingPlatformAccessoryLightBulb } from './accessories/platformAccessoryLightBulb';
+
+const pjson = require('../package.json');
 
 const logTypeFakegato: string = "fakegato";
 const logTypeInfraDB: string  = "infraDB";
-
 
 export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
@@ -18,6 +18,10 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
   public logPort: number;
   public debugMsgLog: number;
 
+  public manufacturer:     string;
+  public model:            string;
+  public firmwareRevision: string;
+
   constructor(
     public readonly log: Logger,
     public readonly config: PlatformConfig,
@@ -28,6 +32,10 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
     this.logType     = this.config.logType     || logTypeFakegato;
     this.logPort     = this.config.logPort     || 9999;
     this.debugMsgLog = this.config.debugMsgLog || 0;
+
+    this.manufacturer     = pjson.author.name;
+    this.model            = pjson.model;
+    this.firmwareRevision = pjson.version;
 
     this.api.on('didFinishLaunching', () => {
       // log.debug('Executed didFinishLaunching callback');
@@ -216,7 +224,7 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
 
       const accessory = new this.api.platformAccessory(device.exampleDisplayName, uuid);
       accessory.context.device = device;
-      new LoggingPlatformAccessory(this, accessory);
+      new LoggingPlatformAccessoryLightBulb(this, accessory);
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       
     }
