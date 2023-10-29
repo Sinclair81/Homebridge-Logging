@@ -8,6 +8,7 @@ export class LoggingPlatformAccessoryLightBulb {
   private service: Service;
 
   private model: string = "LightBulb";
+  public name: string;
 
   private states = {
     On: false,
@@ -18,6 +19,8 @@ export class LoggingPlatformAccessoryLightBulb {
     private readonly platform: LoggingHomebridgePlatform,
     private readonly accessory: PlatformAccessory,
   ) {
+
+    this.name = accessory.context.device.name;
 
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer,     this.platform.manufacturer)
@@ -69,6 +72,25 @@ export class LoggingPlatformAccessoryLightBulb {
     this.platform.log.info('[%s] Get Characteristic Brightness ->', this.accessory.context.device.name, isBrightness);
 
     return isBrightness;
+  }
+
+  async checkUdpMsg(array) {
+    // "name|characteristic|value"
+
+    if (array[1].toLowerCase() == "on") {
+
+      this.platform.log.info('[%s] Update Characteristic On <- %s', this.accessory.context.device.name, (array[2] ? "true" : "false"));
+
+      this.service.updateCharacteristic(this.platform.Characteristic.On, array[2] as boolean);
+    }
+
+    if (array[1].toLowerCase() == "brightness") {
+
+      this.platform.log.info('[%s] Update Characteristic Brightness <- %i', this.accessory.context.device.name, array[2] as number);
+
+      this.service.updateCharacteristic(this.platform.Characteristic.Brightness, array[2] as number);
+    }
+
   }
 
 }

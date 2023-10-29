@@ -8,6 +8,7 @@ export class LoggingPlatformAccessoryOutlet {
   private service: Service;
 
   private model: string = "Outlet";
+  public name: string;
 
   private states = {
     On: false
@@ -17,6 +18,8 @@ export class LoggingPlatformAccessoryOutlet {
     private readonly platform: LoggingHomebridgePlatform,
     private readonly accessory: PlatformAccessory,
   ) {
+
+    this.name = accessory.context.device.name;
 
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer,     this.platform.manufacturer)
@@ -49,5 +52,17 @@ export class LoggingPlatformAccessoryOutlet {
 
     return isOn;
   }
+
+  async checkUdpMsg(array) {
+    // "name|characteristic|value"
+
+    if (array[1].toLowerCase() == "on") {
+
+      this.platform.log.info('[%s] Update Characteristic On <- %s', this.accessory.context.device.name, (array[2] ? "true" : "false"));
+
+      this.service.updateCharacteristic(this.platform.Characteristic.On, array[2] as boolean);
+    }
+
+ }
 
 }

@@ -17,6 +17,8 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
 
   public readonly accessories: PlatformAccessory[] = [];
 
+  public readonly serverAccessories: any = [];
+
   public logType: string;
   public logPort: number;
   public debugMsgLog: number;
@@ -45,27 +47,42 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
       this.discoverDevices();
     });
 
-    const UDP = require('dgram')
-    const server = UDP.createSocket('udp4')
+    const UDP = require('dgram');
+    const server = UDP.createSocket('udp4');
 
     server.on('listening', () => {
-      // Server address it’s using to listen
-      const address = server.address()
-      log.info('Listining to ', 'Address: ', address.address, 'Port: ', address.port)
-    })
+      const address = server.address();
+      if (this.debugMsgLog == 1) {
+        log.info('Listining to ', 'Address: ', address.address, 'Port: ', address.port);
+      }
+    });
 
     server.on('message', (message, info) => {
-      log.info('Message', message.toString())
-      const response = Buffer.from('Message Received')
+      let msg = message.toString();
+      if (this.debugMsgLog == 1) {
+        log.info('Message', msg);
+      }
+
+      if (msg.indexOf("|") != -1) {
+        let array = msg.split("|"); // "name|characteristic|value"
+        const accessory = this.serverAccessories.find(accessory => accessory.name === array[0]);
+        if (accessory) {
+          accessory.checkUdpMsg(array);
+        }
+      }
+      
+      const response = Buffer.from('Message Received');
       //sending back response to client
       server.send(response, info.port, info.address, (err) => {
-        if (err) {
-          log.error('Failed to send response !!')
-        } else {
-          log.info('Response send Successfully')
+        if (this.debugMsgLog == 1) {
+          if (err) {
+            log.error('Failed to send response !!');
+          } else {
+            log.info('Response send Successfully');
+          }
         }
-      })
-    })
+      });
+    });
 
     server.bind(this.logPort)
 
@@ -97,18 +114,19 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
         const uuid = this.api.hap.uuid.generate(device.name);
         const accessory = new this.api.platformAccessory(device.name, uuid);
         accessory.context.device = device;
+        let sa: any;
 
         switch (device.type) {
           case "switch": // status	switch status ( 0 / 1 )
-            new LoggingPlatformAccessorySwitch(this, accessory);
+            sa = new LoggingPlatformAccessorySwitch(this, accessory);
             break;
 
           case "outlet": // status	switch status ( 0 / 1 )
-            new LoggingPlatformAccessoryOutlet(this, accessory);
+            sa = new LoggingPlatformAccessoryOutlet(this, accessory);
             break;
       
           case "lightbulb": // status	switch status ( 0 / 1 )
-            new LoggingPlatformAccessoryLightBulb(this, accessory);
+            sa = new LoggingPlatformAccessoryLightBulb(this, accessory);
             break;
 
           case "blind": // ??? valvePosition	valvePosition in percentage
@@ -176,10 +194,11 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
             break;
         
           default:
-            new LoggingPlatformAccessory(this, accessory);
+            sa = new LoggingPlatformAccessory(this, accessory);
             break;
         }
 
+        this.serverAccessories.push(sa);
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
 
       }
