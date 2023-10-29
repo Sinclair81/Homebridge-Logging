@@ -3,17 +3,19 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { LoggingPlatformAccessory } from './platformAccessory';
 
-/**
- * HomebridgePlatform
- * This class is the main constructor for your plugin, this is where you should
- * parse the user config and discover/register accessories with Homebridge.
- */
+const logTypeFakegato: string = "fakegato";
+const logTypeInfraDB: string  = "infraDB";
+
+
 export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
 
-  // this is used to track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
+
+  public logType: string;
+  public logPort: number;
+  public debugMsgLog: number;
 
   constructor(
     public readonly log: Logger,
@@ -22,33 +24,48 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
   ) {
     this.log.debug('Finished initializing platform:', this.config.name);
 
-    // When this event is fired it means Homebridge has restored all cached accessories from disk.
-    // Dynamic Platform plugins should only register new accessories after this event was fired,
-    // in order to ensure they weren't added to homebridge already. This event can also be used
-    // to start discovery of new accessories.
+    this.logType     = this.config.logType     || logTypeFakegato;
+    this.logPort     = this.config.logPort     || 9999;
+    this.debugMsgLog = this.config.debugMsgLog || 0;
+
     this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
       // run the method to discover / register your devices as accessories
       this.discoverDevices();
     });
+
+    const UDP = require('dgram')
+    const server = UDP.createSocket('udp4')
+
+    server.on('listening', () => {
+      // Server address it’s using to listen
+      const address = server.address()
+      log.info('Listining to ', 'Address: ', address.address, 'Port: ', address.port)
+    })
+
+    server.on('message', (message, info) => {
+      log.info('Message', message.toString())
+      const response = Buffer.from('Message Received')
+      //sending back response to client
+      server.send(response, info.port, info.address, (err) => {
+        if (err) {
+          log.error('Failed to send response !!')
+        } else {
+          log.info('Response send Successfully')
+        }
+      })
+    })
+
+    server.bind(this.logPort)
+
   }
 
-  /**
-   * This function is invoked when homebridge restores cached accessories from disk at startup.
-   * It should be used to setup event handlers for characteristics and update respective values.
-   */
   configureAccessory(accessory: PlatformAccessory) {
-    this.log.info('Loading accessory from cache:', accessory.displayName);
-
+    //this.log.info('Loading accessory from cache:', accessory.displayName);
     // add the restored accessory to the accessories cache so we can track if it has already been registered
-    this.accessories.push(accessory);
+    //this.accessories.push(accessory);
   }
 
-  /**
-   * This is an example method showing how to register discovered accessories.
-   * Accessories must only be registered once, previously created accessories
-   * must not be registered again to prevent "duplicate UUID" errors.
-   */
   discoverDevices() {
 
     // EXAMPLE ONLY
