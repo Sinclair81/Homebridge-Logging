@@ -1,30 +1,30 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 
-import { PLATFORM_NAME, PLUGIN_NAME }        from './settings';
-import { LoggingPlatformAccessory }          from './accessories/platformAccessory_multi';
-import { LoggingPlatformAccessorySwitch }    from './accessories/platformAccessorySwitch';
-import { LoggingPlatformAccessoryOutlet }    from './accessories/platformAccessoryOutlet';
+import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
+import { LoggingPlatformAccessory } from './accessories/platformAccessory_multi';
+import { LoggingPlatformAccessorySwitch } from './accessories/platformAccessorySwitch';
+import { LoggingPlatformAccessoryOutlet } from './accessories/platformAccessoryOutlet';
 import { LoggingPlatformAccessoryLightBulb } from './accessories/platformAccessoryLightBulb';
 
-const pjson = require('../package.json');
+const pjson = require('../package.json'); // eslint-disable-line
+const UDP = require('dgram'); // eslint-disable-line
 
-const logTypeFakegato: string = "fakegato";
-const logTypeInfraDB: string  = "infraDB";
+const logTypeFakegato = 'fakegato';
+// const logTypeInfraDB = 'infraDB';
 
 export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
   public readonly Characteristic: typeof Characteristic = this.api.hap.Characteristic;
 
   public readonly accessories: PlatformAccessory[] = [];
-
-  public readonly serverAccessories: any = [];
+  public readonly serverAccessories: any = []; // eslint-disable-line
 
   public logType: string;
   public logPort: number;
   public debugMsgLog: number;
 
-  public manufacturer:     string;
-  public model:            string;
+  public manufacturer: string;
+  public model: string;
   public firmwareRevision: string;
 
   constructor(
@@ -34,12 +34,12 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
   ) {
     // this.log.debug('Finished initializing platform:', this.config.name);
 
-    this.logType     = this.config.logType     || logTypeFakegato;
-    this.logPort     = this.config.logPort     || 9999;
+    this.logType = this.config.logType || logTypeFakegato;
+    this.logPort = this.config.logPort || 9999;
     this.debugMsgLog = this.config.debugMsgLog || 0;
 
-    this.manufacturer     = pjson.author.name;
-    this.model            = pjson.model;
+    this.manufacturer = pjson.author.name;
+    this.model = pjson.model;
     this.firmwareRevision = pjson.version;
 
     this.api.on('didFinishLaunching', () => {
@@ -47,34 +47,33 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
       this.discoverDevices();
     });
 
-    const UDP = require('dgram');
     const server = UDP.createSocket('udp4');
 
     server.on('listening', () => {
       const address = server.address();
-      if (this.debugMsgLog == 1) {
+      if (this.debugMsgLog) {
         log.info('Listining to ', 'Address: ', address.address, 'Port: ', address.port);
       }
     });
 
     server.on('message', (message, info) => {
-      let msg = message.toString();
-      if (this.debugMsgLog == 1) {
+      const msg = message.toString();
+      if (this.debugMsgLog) {
         log.info('Message', msg);
       }
 
-      if (msg.indexOf("|") != -1) {
-        let array = msg.split("|"); // "name|characteristic|value"
+      if (msg.indexOf('|') !== -1) {
+        const array = msg.split('|'); // "name|characteristic|value"
         const accessory = this.serverAccessories.find(accessory => accessory.name === array[0]);
         if (accessory) {
           accessory.checkUdpMsg(array);
         }
       }
-      
+
       const response = Buffer.from('Message Received');
       //sending back response to client
       server.send(response, info.port, info.address, (err) => {
-        if (this.debugMsgLog == 1) {
+        if (this.debugMsgLog) {
           if (err) {
             log.error('Failed to send response !!');
           } else {
@@ -84,7 +83,7 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
       });
     });
 
-    server.bind(this.logPort)
+    server.bind(this.logPort);
 
   }
 
@@ -107,92 +106,92 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
 
       for (const device of configDevices) {
 
-        if (this.config.debugMsgLog == true) {
+        if (this.config.debugMsgLog) {
           this.log.info('Adding new accessory:', device.name);
         }
 
         const uuid = this.api.hap.uuid.generate(device.name);
         const accessory = new this.api.platformAccessory(device.name, uuid);
         accessory.context.device = device;
-        let sa: any;
+        let sa: any; // eslint-disable-line
 
         switch (device.type) {
-          case "switch": // status	switch status ( 0 / 1 )
+          case 'switch': // status	switch status ( 0 / 1 )
             sa = new LoggingPlatformAccessorySwitch(this, accessory);
             break;
 
-          case "outlet": // status	switch status ( 0 / 1 )
+          case 'outlet': // status	switch status ( 0 / 1 )
             sa = new LoggingPlatformAccessoryOutlet(this, accessory);
             break;
-      
-          case "lightbulb": // status	switch status ( 0 / 1 )
+
+          case 'lightbulb': // status	switch status ( 0 / 1 )
             sa = new LoggingPlatformAccessoryLightBulb(this, accessory);
             break;
 
-          case "blind": // ??? valvePosition	valvePosition in percentage
-            
-            break;
-          
-          case "window": // ??? valvePosition	valvePosition in percentage
-            
+          case 'blind': // ??? valvePosition	valvePosition in percentage
+
             break;
 
-          case "garagedoor": // status	switch status ( 0 / 1 )
-            
+          case 'window': // ??? valvePosition	valvePosition in percentage
+
             break;
 
-          case "thermostat": // temp	Temperature in celcius ( value averaged over 10 minutes )
-            
+          case 'garagedoor': // status	switch status ( 0 / 1 )
+
             break;
 
-          case "valve": // status	switch status ( 0 / 1 )
-            
+          case 'thermostat': // temp	Temperature in celcius ( value averaged over 10 minutes )
+
             break;
 
-          case "fan": // status	switch status ( 0 / 1 )
-            
+          case 'valve': // status	switch status ( 0 / 1 )
+
             break;
 
-          case "filterMaintenance": // status	switch status ( 0 / 1 )
-            
+          case 'fan': // status	switch status ( 0 / 1 )
+
             break;
 
-          case "lightSensor": // lux	light level in lux
-            
+          case 'filterMaintenance': // status	switch status ( 0 / 1 )
+
             break;
 
-          case "motionSensor": // motion	motion sensor state ( 0 / 1 )
-            
+          case 'lightSensor': // lux	light level in lux
+
             break;
 
-          case "contactSensor": // contact	contact sensor state ( 0 / 1 )
-            
+          case 'motionSensor': // motion	motion sensor state ( 0 / 1 )
+
             break;
 
-          case "smokeSensor": // status	switch status ( 0 / 1 )
-            
+          case 'contactSensor': // contact	contact sensor state ( 0 / 1 )
+
             break;
 
-          case "temperatureSensor": // temp	Temperature in celcius ( value averaged over 10 minutes )
-            
+          case 'smokeSensor': // status	switch status ( 0 / 1 )
+
             break;
 
-          case "humiditySensor": // humidity	humidity in percentage ( value averaged over 10 minutes )
-            
+          case 'temperatureSensor': // temp	Temperature in celcius ( value averaged over 10 minutes )
+
             break;
 
-          case "carbonDioxideSensor": // ??? ppm	Parts per million || voc	µg/m3
-            
+          case 'humiditySensor': // humidity	humidity in percentage ( value averaged over 10 minutes )
+
             break;
 
-          case "airQualitySensor": // ??? ppm	Parts per million || voc	µg/m3
-            
+          case 'carbonDioxideSensor': // ??? ppm	Parts per million || voc	µg/m3
+
             break;
 
-          case "leakSensor": // status	switch status ( 0 / 1 )
-            
+          case 'airQualitySensor': // ??? ppm	Parts per million || voc	µg/m3
+
             break;
-        
+
+          case 'leakSensor': // status	switch status ( 0 / 1 )
+
+            break;
+
           default:
             sa = new LoggingPlatformAccessory(this, accessory);
             break;
