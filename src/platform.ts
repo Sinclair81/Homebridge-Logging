@@ -1,6 +1,7 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 
 import { PLATFORM_NAME, PLUGIN_NAME }        from './settings';
+import { LoggingPlatformAccessory }          from './accessories/platformAccessory_multi';
 import { LoggingPlatformAccessoryLightBulb } from './accessories/platformAccessoryLightBulb';
 
 const pjson = require('../package.json');
@@ -75,7 +76,11 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
 
   discoverDevices() {
 
-    /*
+    // Remove all old accessories
+    for (const oldAccessory of this.accessories) {
+      this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [oldAccessory]);
+      // this.log.info('Removing existing accessory from cache:', oldAccessory.displayName);
+    }
 
     if (Array.isArray(this.config.devices)) {
 
@@ -87,146 +92,96 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
           this.log.info('Adding new accessory:', device.name);
         }
 
+        const uuid = this.api.hap.uuid.generate(device.name);
+        const accessory = new this.api.platformAccessory(device.name, uuid);
+        accessory.context.device = device;
+
         switch (device.type) {
           case "switch": // status	switch status ( 0 / 1 )
-            this.accessoriesArray.push( new SwitchPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 1;
+            
             break;
       
           case "lightbulb": // status	switch status ( 0 / 1 )
-            this.accessoriesArray.push( new LightbulbPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 2;
+            new LoggingPlatformAccessoryLightBulb(this, accessory);
             break;
 
           case "blind": // ??? valvePosition	valvePosition in percentage
-            this.accessoriesArray.push( new BlindPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 3;
+            
             break;
           
           case "window": // ??? valvePosition	valvePosition in percentage
-            this.accessoriesArray.push( new WindowPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 3;
+            
             break;
 
           case "garagedoor": // status	switch status ( 0 / 1 )
-            this.accessoriesArray.push( new GaragedoorPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 3;
+            
             break;
 
           case "thermostat": // temp	Temperature in celcius ( value averaged over 10 minutes )
-            this.accessoriesArray.push( new ThermostatPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 4;
+            
             break;
 
           case "valve": // status	switch status ( 0 / 1 )
-            if (!(device.valveParentIrrigationSystem)){
-              this.accessoriesArray.push( new ValvePlatformAccessory(this.api, this, device) );
-            }
-            this.queueMinSize += 5;
+            
             break;
 
           case "fan": // status	switch status ( 0 / 1 )
-            this.accessoriesArray.push( new FanPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 3;
+            
             break;
 
           case "filterMaintenance": // status	switch status ( 0 / 1 )
-            this.accessoriesArray.push( new FilterMaintenancePlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 2;
+            
             break;
 
           case "lightSensor": // lux	light level in lux
-            this.accessoriesArray.push( new LightSensorPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 1;
+            
             break;
 
           case "motionSensor": // motion	motion sensor state ( 0 / 1 )
-            this.accessoriesArray.push( new MotionSensorPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 1;
+            
             break;
 
           case "contactSensor": // contact	contact sensor state ( 0 / 1 )
-            this.accessoriesArray.push( new ContactSensorPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 1;
+            
             break;
 
           case "smokeSensor": // status	switch status ( 0 / 1 )
-            this.accessoriesArray.push( new SmokeSensorPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 1;
+            
             break;
 
           case "temperatureSensor": // temp	Temperature in celcius ( value averaged over 10 minutes )
-            this.accessoriesArray.push( new TemperatureSensorPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 1;
+            
             break;
 
           case "humiditySensor": // humidity	humidity in percentage ( value averaged over 10 minutes )
-            this.accessoriesArray.push( new HumiditySensorPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 1;
+            
             break;
 
           case "carbonDioxideSensor": // ??? ppm	Parts per million || voc	µg/m3
-            this.accessoriesArray.push( new CarbonDioxideSensorPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 3;
+            
             break;
 
           case "airQualitySensor": // ??? ppm	Parts per million || voc	µg/m3
-            this.accessoriesArray.push( new AirQualitySensorPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 1;
+            
             break;
 
           case "leakSensor": // status	switch status ( 0 / 1 )
-            this.accessoriesArray.push( new LeakSensorPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 2;
+            
             break;
 
           case "outlet": // status	switch status ( 0 / 1 )
-            this.accessoriesArray.push( new OutletPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 1;
+            
             break;
         
           default:
-            this.accessoriesArray.push( new SwitchPlatformAccessory(this.api, this, device) );
-            this.queueMinSize += 1;
+            new LoggingPlatformAccessory(this, accessory);
             break;
         }
 
+        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+
       }
     }
 
-    */
-
-    // Remove all old accessories
-    for (const oldAccessory of this.accessories) {
-      this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [oldAccessory]);
-      // this.log.info('Removing existing accessory from cache:', oldAccessory.displayName);
-    }
-
-    // EXAMPLE ONLY
-    // A real plugin you would discover accessories from the local network, cloud services
-    // or a user-defined array in the platform config.
-    const exampleDevices = [
-      {
-        exampleUniqueId: 'ABCD',
-        exampleDisplayName: 'Bedroom',
-      },
-      {
-        exampleUniqueId: 'EFGH',
-        exampleDisplayName: 'Kitchen',
-      }
-    ];
-
-    for (const device of exampleDevices) {
-
-      const uuid = this.api.hap.uuid.generate(device.exampleUniqueId);
-        
-      this.log.info('Adding new accessory:', device.exampleDisplayName);
-
-      const accessory = new this.api.platformAccessory(device.exampleDisplayName, uuid);
-      accessory.context.device = device;
-      new LoggingPlatformAccessoryLightBulb(this, accessory);
-      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-      
-    }
   }
 }
