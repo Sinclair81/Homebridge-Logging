@@ -2,6 +2,8 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 
 import { PLATFORM_NAME, PLUGIN_NAME }        from './settings';
 import { LoggingPlatformAccessory }          from './accessories/platformAccessory_multi';
+import { LoggingPlatformAccessorySwitch }    from './accessories/platformAccessorySwitch';
+import { LoggingPlatformAccessoryOutlet }    from './accessories/platformAccessoryOutlet';
 import { LoggingPlatformAccessoryLightBulb } from './accessories/platformAccessoryLightBulb';
 
 const pjson = require('../package.json');
@@ -98,7 +100,11 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
 
         switch (device.type) {
           case "switch": // status	switch status ( 0 / 1 )
-            
+            new LoggingPlatformAccessorySwitch(this, accessory);
+            break;
+
+          case "outlet": // status	switch status ( 0 / 1 )
+            new LoggingPlatformAccessoryOutlet(this, accessory);
             break;
       
           case "lightbulb": // status	switch status ( 0 / 1 )
@@ -166,10 +172,6 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
             break;
 
           case "leakSensor": // status	switch status ( 0 / 1 )
-            
-            break;
-
-          case "outlet": // status	switch status ( 0 / 1 )
             
             break;
         

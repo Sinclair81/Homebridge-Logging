@@ -2,6 +2,7 @@
   "private": true,
   "displayName": "Homebridge Logging",
   "name": "homebridge-logging",
+  "model": "Logging Platform",
   "version": "0.0.1",
   "description": "A short description about what your plugin does.",
   "license": "",
