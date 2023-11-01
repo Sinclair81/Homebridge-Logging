@@ -32,40 +32,57 @@ export class LoggingPlatformAccessoryOutlet {
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.displayName);
 
     this.service.getCharacteristic(this.platform.Characteristic.On)
-      // .onSet(this.setOn.bind(this))                // SET - bind to the `setOn` method below
       .onGet(this.getOn.bind(this));               // GET - bind to the `getOn` method below
 
-  }
+    if (this.platform.logType === this.platform.logTypeFakegato) {
 
-  /*
-  async setOn(value: CharacteristicValue) {
-    // implement your own code to turn your device on/off
-    this.states.On = value as boolean;
+      // this.fakegatoService = new this.platform.FakeGatoHistoryService("custom", this, {storage: 'fs'});
+      // this.services.push(this.fakegatoService);
+      
+    }
 
-    this.platform.log.info('[%s] Set Characteristic On <- %s', this.accessory.context.device.name, this.states.On);
+    setInterval(() => {
+      this.logAccessory();
+    }, this.platform.logInterval);
   }
-  */
 
   async getOn(): Promise<CharacteristicValue> {
-    // implement your own code to check if the device is on
 
-    this.platform.log.info('[%s] Get Characteristic On -> %s', this.accessory.context.device.name, this.states.On);
-
+    if (this.platform.config.debugMsgLog || this.accessory.context.device.debugMsgLog) {
+      this.platform.log.info('[%s] Get Characteristic On -> %s', this.accessory.context.device.name, this.states.On);
+    }
     return this.states.On;
   }
 
   async checkUdpMsg(array) {
-    // "name|characteristic|value"
 
     if (array[1] === "On") {
 
       this.states.On = array[2] as boolean;
 
-      this.platform.log.info('[%s] Update Characteristic On <- %s', this.accessory.context.device.name, this.states.On);
+      if (this.platform.config.debugMsgLog || this.accessory.context.device.debugMsgLog) {
+        this.platform.log.info('[%s] Update Characteristic On <- %s', this.accessory.context.device.name, this.states.On);
+      }
 
       this.service.updateCharacteristic(this.platform.Characteristic.On, this.states.On);
     }
 
  }
+
+ async logAccessory() {
+
+  if (this.platform.logType === this.platform.logTypeInfluxDB) {
+
+    this.platform.influxDB.logBooleanValue(this.accessory.context.device.name, "On", this.states.On);
+    
+  }
+
+  if (this.platform.logType === this.platform.logTypeFakegato) {
+
+    // this.fakegatoService.addEntry({time: Math.round(new Date().valueOf() / 1000), temp: this.sensStates.CurrentTemperature});
+
+  }
+  
+}
 
 }

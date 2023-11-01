@@ -1,16 +1,15 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
+import { InfluxDBLogger } from "./influxDB";
 import { LoggingPlatformAccessory } from './accessories/platformAccessory_multi';
 import { LoggingPlatformAccessorySwitch } from './accessories/platformAccessorySwitch';
 import { LoggingPlatformAccessoryOutlet } from './accessories/platformAccessoryOutlet';
 import { LoggingPlatformAccessoryLightBulb } from './accessories/platformAccessoryLightBulb';
 
+
 const pjson = require('../package.json'); // eslint-disable-line
 const UDP = require('dgram'); // eslint-disable-line
-
-const logTypeFakegato = 'fakegato';
-// const logTypeInfraDB = 'infraDB';
 
 export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
   public readonly Service: typeof Service = this.api.hap.Service;
@@ -19,13 +18,19 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
   public readonly accessories: PlatformAccessory[] = [];
   public readonly serverAccessories: any = []; // eslint-disable-line
 
+  public logTypeInfluxDB = 'influxDB';
+  public logTypeFakegato = 'fakegato';
+
   public logType: string;
+  public logInterval: number;
   public logPort: number;
   public debugMsgLog: number;
 
   public manufacturer: string;
   public model: string;
   public firmwareRevision: string;
+
+  public influxDB: InfluxDBLogger; 
 
   constructor(
     public readonly log: Logger,
@@ -34,13 +39,16 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
   ) {
     // this.log.debug('Finished initializing platform:', this.config.name);
 
-    this.logType = this.config.logType || logTypeFakegato;
+    this.logType = this.config.logType || this.logTypeInfluxDB;
+    this.logInterval = this.config.logInterval || 300000; // 5min
     this.logPort = this.config.logPort || 10002;
     this.debugMsgLog = this.config.debugMsgLog || 0;
 
     this.manufacturer = pjson.author.name;
     this.model = pjson.model;
     this.firmwareRevision = pjson.version;
+
+    this.influxDB = new InfluxDBLogger(this, this.config);
 
     this.api.on('didFinishLaunching', () => {
       // log.debug('Executed didFinishLaunching callback');
@@ -82,6 +90,18 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
     });
 
     server.bind(this.logPort);
+
+    if (this.config.logType === this.logTypeInfluxDB) {
+      /******************************************
+       * add code here only needed for InfluxDB *
+       ******************************************/
+    }
+
+    if (this.config.logType === this.logTypeFakegato) {
+      /******************************************
+       * add code here only needed for Fakegato *
+       ******************************************/
+    }
 
   }
 
@@ -206,4 +226,5 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
     }
 
   }
+
 }
