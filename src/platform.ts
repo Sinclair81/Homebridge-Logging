@@ -35,7 +35,7 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
     // this.log.debug('Finished initializing platform:', this.config.name);
 
     this.logType = this.config.logType || logTypeFakegato;
-    this.logPort = this.config.logPort || 9999;
+    this.logPort = this.config.logPort || 10002;
     this.debugMsgLog = this.config.debugMsgLog || 0;
 
     this.manufacturer = pjson.author.name;
