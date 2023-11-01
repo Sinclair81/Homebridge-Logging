@@ -32,17 +32,19 @@ export class LoggingPlatformAccessoryOutlet {
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.displayName);
 
     this.service.getCharacteristic(this.platform.Characteristic.On)
-      .onSet(this.setOn.bind(this))                // SET - bind to the `setOn` method below
+      // .onSet(this.setOn.bind(this))                // SET - bind to the `setOn` method below
       .onGet(this.getOn.bind(this));               // GET - bind to the `getOn` method below
 
   }
 
+  /*
   async setOn(value: CharacteristicValue) {
     // implement your own code to turn your device on/off
     this.states.On = value as boolean;
 
     this.platform.log.info('[%s] Set Characteristic On <- %s', this.accessory.context.device.name, this.states.On);
   }
+  */
 
   async getOn(): Promise<CharacteristicValue> {
     // implement your own code to check if the device is on
