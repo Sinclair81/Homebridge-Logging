@@ -30,7 +30,7 @@ export class LoggingPlatformAccessoryLightBulb {
 
     this.service = this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
 
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.name);
+    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.displayName);
 
     this.service.getCharacteristic(this.platform.Characteristic.On)
       .onSet(this.setOn.bind(this))                // SET - bind to the `setOn` method below
@@ -46,49 +46,51 @@ export class LoggingPlatformAccessoryLightBulb {
     // implement your own code to turn your device on/off
     this.states.On = value as boolean;
 
-    this.platform.log.info('[%s] Set Characteristic On ->', this.accessory.context.device.name, value);
+    this.platform.log.info('[%s] Set Characteristic On <- %s', this.accessory.context.device.name, this.states.On);
   }
 
   async getOn(): Promise<CharacteristicValue> {
     // implement your own code to check if the device is on
-    const isOn = this.states.On;
 
-    this.platform.log.info('[%s] Get Characteristic On ->', this.accessory.context.device.name, isOn);
+    this.platform.log.info('[%s] Get Characteristic On -> %s', this.accessory.context.device.name, this.states.On);
 
-    return isOn;
+    return this.states.On;
   }
 
   async setBrightness(value: CharacteristicValue) {
     // implement your own code to set the brightness
     this.states.Brightness = value as number;
 
-    this.platform.log.info('[%s] Set Characteristic Brightness -> ', this.accessory.context.device.name, value);
+    this.platform.log.info('[%s] Set Characteristic Brightness <- %i', this.accessory.context.device.name, this.states.Brightness);
   }
 
   async getBrightness(): Promise<CharacteristicValue> {
     // implement your own code to check if the device is on
-    const isBrightness = this.states.Brightness;
 
-    this.platform.log.info('[%s] Get Characteristic Brightness ->', this.accessory.context.device.name, isBrightness);
+    this.platform.log.info('[%s] Get Characteristic Brightness -> %i', this.accessory.context.device.name, this.states.Brightness);
 
-    return isBrightness;
+    return this.states.Brightness;
   }
 
   async checkUdpMsg(array) {
     // "name|characteristic|value"
 
-    if (array[1].toLowerCase() == "on") {
+    if (array[1] === "On") {
 
-      this.platform.log.info('[%s] Update Characteristic On <- %s', this.accessory.context.device.name, (array[2] ? "true" : "false"));
+      this.states.On = array[2] as boolean;
 
-      this.service.updateCharacteristic(this.platform.Characteristic.On, array[2] as boolean);
+      this.platform.log.info('[%s] Update Characteristic On <- %s', this.accessory.context.device.name, this.states.On);
+
+      this.service.updateCharacteristic(this.platform.Characteristic.On, this.states.On);
     }
 
-    if (array[1].toLowerCase() == "brightness") {
+    if (array[1] === "Brightness") {
 
-      this.platform.log.info('[%s] Update Characteristic Brightness <- %i', this.accessory.context.device.name, array[2] as number);
+      this.states.Brightness = array[2] as number;
 
-      this.service.updateCharacteristic(this.platform.Characteristic.Brightness, array[2] as number);
+      this.platform.log.info('[%s] Update Characteristic Brightness <- %i', this.accessory.context.device.name, this.states.Brightness);
+
+      this.service.updateCharacteristic(this.platform.Characteristic.Brightness, this.states.Brightness);
     }
 
   }

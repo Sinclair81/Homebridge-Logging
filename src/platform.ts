@@ -52,14 +52,14 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
     server.on('listening', () => {
       const address = server.address();
       if (this.debugMsgLog) {
-        log.info('Listining to ', 'Address: ', address.address, 'Port: ', address.port);
+        log.info('Listining to Address: %s at Port: %s', address.address, address.port);
       }
     });
 
     server.on('message', (message, info) => {
       const msg = message.toString();
       if (this.debugMsgLog) {
-        log.info('Message', msg);
+        log.info('Receive Message: %s', msg);
       }
 
       if (msg.indexOf('|') !== -1) {
@@ -76,8 +76,6 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
         if (this.debugMsgLog) {
           if (err) {
             log.error('Failed to send response !!');
-          } else {
-            log.info('Response send Successfully');
           }
         }
       });
@@ -106,26 +104,30 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
 
       for (const device of configDevices) {
 
+        let name = device.displayName || String("[L] " + device.name);
+        device.displayName = name;
+
         if (this.config.debugMsgLog) {
-          this.log.info('Adding new accessory:', device.name);
+          this.log.info('Adding new accessory:', name);
         }
 
-        const uuid = this.api.hap.uuid.generate(device.name);
-        const accessory = new this.api.platformAccessory(device.name, uuid);
+        const uuid = this.api.hap.uuid.generate(name);
+        const accessory = new this.api.platformAccessory(name, uuid);
         accessory.context.device = device;
-        let sa: any; // eslint-disable-line
+    
+        let serverAccessory: any; // eslint-disable-line
 
         switch (device.type) {
           case 'switch': // status	switch status ( 0 / 1 )
-            sa = new LoggingPlatformAccessorySwitch(this, accessory);
+            serverAccessory = new LoggingPlatformAccessorySwitch(this, accessory);
             break;
 
           case 'outlet': // status	switch status ( 0 / 1 )
-            sa = new LoggingPlatformAccessoryOutlet(this, accessory);
+            serverAccessory = new LoggingPlatformAccessoryOutlet(this, accessory);
             break;
 
           case 'lightbulb': // status	switch status ( 0 / 1 )
-            sa = new LoggingPlatformAccessoryLightBulb(this, accessory);
+            serverAccessory = new LoggingPlatformAccessoryLightBulb(this, accessory);
             break;
 
           case 'blind': // ??? valvePosition	valvePosition in percentage
@@ -193,11 +195,11 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
             break;
 
           default:
-            sa = new LoggingPlatformAccessory(this, accessory);
+            serverAccessory = new LoggingPlatformAccessory(this, accessory);
             break;
         }
 
-        this.serverAccessories.push(sa);
+        this.serverAccessories.push(serverAccessory);
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
 
       }

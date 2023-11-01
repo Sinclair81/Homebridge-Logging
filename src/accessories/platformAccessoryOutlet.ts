@@ -29,7 +29,7 @@ export class LoggingPlatformAccessoryOutlet {
 
     this.service = this.accessory.getService(this.platform.Service.Outlet) || this.accessory.addService(this.platform.Service.Outlet);
 
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.name);
+    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.displayName);
 
     this.service.getCharacteristic(this.platform.Characteristic.On)
       .onSet(this.setOn.bind(this))                // SET - bind to the `setOn` method below
@@ -41,26 +41,27 @@ export class LoggingPlatformAccessoryOutlet {
     // implement your own code to turn your device on/off
     this.states.On = value as boolean;
 
-    this.platform.log.info('[%s] Set Characteristic On ->', this.accessory.context.device.name, value);
+    this.platform.log.info('[%s] Set Characteristic On <- %s', this.accessory.context.device.name, this.states.On);
   }
 
   async getOn(): Promise<CharacteristicValue> {
     // implement your own code to check if the device is on
-    const isOn = this.states.On;
 
-    this.platform.log.info('[%s] Get Characteristic On ->', this.accessory.context.device.name, isOn);
+    this.platform.log.info('[%s] Get Characteristic On -> %s', this.accessory.context.device.name, this.states.On);
 
-    return isOn;
+    return this.states.On;
   }
 
   async checkUdpMsg(array) {
     // "name|characteristic|value"
 
-    if (array[1].toLowerCase() == "on") {
+    if (array[1] === "On") {
 
-      this.platform.log.info('[%s] Update Characteristic On <- %s', this.accessory.context.device.name, (array[2] ? "true" : "false"));
+      this.states.On = array[2] as boolean;
 
-      this.service.updateCharacteristic(this.platform.Characteristic.On, array[2] as boolean);
+      this.platform.log.info('[%s] Update Characteristic On <- %s', this.accessory.context.device.name, this.states.On);
+
+      this.service.updateCharacteristic(this.platform.Characteristic.On, this.states.On);
     }
 
  }
