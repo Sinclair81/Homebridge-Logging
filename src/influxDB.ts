@@ -3,20 +3,20 @@ import { InfluxDB, Point } from '@influxdata/influxdb-client';
 
 export class InfluxDBLogger {
 
-  private platform: any;
-  private org: any;
-  private bucket: any;
-  
-  private influxDB: any;
+  private platform: any; // eslint-disable-line
+  private org: any; // eslint-disable-line
+  private bucket: any; // eslint-disable-line
 
-  constructor(platform: any, config: any) {
+  private influxDB: any; // eslint-disable-line
+
+  constructor(platform: any, config: any) { // eslint-disable-line
 
     this.platform = platform;
-    this.org      = config.influxOrg || "";
-    this.bucket   = config.influxBucket || "";
+    this.org = config.influxOrg || '';
+    this.bucket = config.influxBucket || '';
 
-    const url   = config.influxUrl || "";
-    const token = config.influxToken || "";
+    const url = config.influxUrl || '';
+    const token = config.influxToken || '';
 
     this.influxDB = new InfluxDB({ url, token });
 
@@ -39,7 +39,7 @@ export class InfluxDBLogger {
       if (this.platform.config.debugMsgLog) {
         this.platform.log.info('[%s] LOG WRITE FINISHED', name);
       }
-    })
+    });
 
   }
 
@@ -60,7 +60,7 @@ export class InfluxDBLogger {
       if (this.platform.config.debugMsgLog) {
         this.platform.log.info('[%s] LOG WRITE FINISHED', name);
       }
-    })
+    });
 
   }
 
@@ -81,18 +81,18 @@ export class InfluxDBLogger {
       if (this.platform.config.debugMsgLog) {
         this.platform.log.info('[%s] LOG WRITE FINISHED', name);
       }
-    })
+    });
 
   }
 
   boolToNumber(bool: boolean): number {
-    if (String(bool) === "true") {
+    if (String(bool) === 'true') {
       return 1;
     }
-    if (String(bool) === "1") {
+    if (String(bool) === '1') {
       return 1;
     }
     return 0;
   }
-    
+
 }

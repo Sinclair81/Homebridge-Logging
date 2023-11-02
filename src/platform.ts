@@ -1,7 +1,7 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
-import { InfluxDBLogger } from "./influxDB";
+import { InfluxDBLogger } from './influxDB';
 import { LoggingPlatformAccessory } from './accessories/platformAccessory_multi';
 import { LoggingPlatformAccessorySwitch } from './accessories/platformAccessorySwitch';
 import { LoggingPlatformAccessoryOutlet } from './accessories/platformAccessoryOutlet';
@@ -30,7 +30,7 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
   public model: string;
   public firmwareRevision: string;
 
-  public influxDB: InfluxDBLogger; 
+  public influxDB: InfluxDBLogger;
 
   constructor(
     public readonly log: Logger,
@@ -124,7 +124,7 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
 
       for (const device of configDevices) {
 
-        let name = device.displayName || String("[L] " + device.name);
+        const name = device.displayName || String('[L] ' + device.name);
         device.displayName = name;
 
         if (this.config.debugMsgLog) {
@@ -134,7 +134,7 @@ export class LoggingHomebridgePlatform implements DynamicPlatformPlugin {
         const uuid = this.api.hap.uuid.generate(name);
         const accessory = new this.api.platformAccessory(name, uuid);
         accessory.context.device = device;
-    
+
         let serverAccessory: any; // eslint-disable-line
 
         switch (device.type) {
