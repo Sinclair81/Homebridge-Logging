@@ -1,7 +1,5 @@
 import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
-
 import { LoggingHomebridgePlatform } from '../platform';
-
 import { md5 } from "../md5";
 
 export class LoggingPlatformAccessoryOutlet {

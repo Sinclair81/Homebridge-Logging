@@ -2,10 +2,14 @@ import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 import { LoggingHomebridgePlatform } from '../platform';
 import { md5 } from "../md5";
 
-export class LoggingPlatformAccessorySwitch {
+/*****************
+ * CHANGE _Leer_ *
+ * ***************/
+
+export class LoggingPlatformAccessory_Leer_ {
   private service: Service;
 
-  private model: string = "Switch";
+  private model: string = "_Leer_";
   public name: string;
 
   private states = {
@@ -25,7 +29,7 @@ export class LoggingPlatformAccessorySwitch {
       .setCharacteristic(this.platform.Characteristic.SerialNumber,     md5(accessory.context.device.name + this.model))
       .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.platform.firmwareRevision);
 
-    this.service = this.accessory.getService(this.platform.Service.Switch) || this.accessory.addService(this.platform.Service.Switch);
+    this.service = this.accessory.getService(this.platform.Service._Leer_) || this.accessory.addService(this.platform.Service._Leer_);
 
     this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.displayName);
 
